@@ -333,7 +333,7 @@ FROM customer_points AS p
 GROUP BY s.customer_id;
 ```
 
-For Question 9, I present two solutions that provide the identical result. Similar to the consideration presented in [```Question 7```](https://github.com/JayKim-Analytics/8-week-SQL-Challenge/blob/main/Case%20Study%201%20-%20Danny's%20Diner/Solutions.md#7-which-item-was-purchased-just-before-the-customer-became-a-member), I was curious as to which solution would be more optimal in terms of completion time within a larger dataset. I will revisit this topic in the future.
+For Question 9, I present two solutions that provide an identical result. Similar to the consideration presented in [```Question 7```](https://github.com/JayKim-Analytics/8-week-SQL-Challenge/blob/main/Case%20Study%201%20-%20Danny's%20Diner/Solutions.md#7-which-item-was-purchased-just-before-the-customer-became-a-member), I was curious as to which solution would be more optimal in terms of completion time within a larger dataset. I will revisit this topic in the future.
 
 #### Steps:
 <details>
@@ -388,7 +388,7 @@ SELECT customer_id,
 		WHEN product_name = 'sushi' THEN (2*10*price)
 		WHEN order_date BETWEEN join_date AND DATEADD(day, 6, join_date)  THEN (2*10*price) 
 		ELSE (price * 10) 
-		END) AS customer_points
+		END) AS total_points
 FROM CTE
 WHERE order_date < EOMONTH('2021-01-31')
 GROUP BY customer_id;
@@ -407,7 +407,7 @@ SELECT d.customer_id,
 	WHEN m.product_name = 'sushi' THEN 2*10*m.price
 	WHEN s.order_date BETWEEN d.join_date AND d.double_points_valid THEN 2*10*m.price
 	ELSE 10*m.price
-	END) AS points
+	END) AS total_points
 FROM DATES_CTE AS d
 	INNER JOIN sales AS s 
 	ON d.customer_id = s.customer_id
@@ -417,13 +417,50 @@ WHERE s.order_date < EOMONTH('2021-01-31')
 GROUP BY d.customer_id;
 ```
 
-For Question 10, I present two solutions that provide the identical result. Similar to the consideration presented in [```Question 9```]([https://github.com/JayKim-Analytics/8-week-SQL-Challenge/blob/main/Case%20Study%201%20-%20Danny's%20Diner/Solutions.md#7-which-item-was-purchased-just-before-the-customer-became-a-member](https://github.com/JayKim-Analytics/8-week-SQL-Challenge/blob/main/Case%20Study%201%20-%20Danny's%20Diner/Solutions.md#if-each-1-spent-equates-to-10-points-and-sushi-has-a-2x-points-multiplier---how-many-points-would-each-customer-have)), I was curious as to which solution would be more optimal in terms of completion time within a larger dataset. I will revisit this topic in the future.
+For Question 10, I present two solutions that provide an identical result. Similar to the consideration presented in [```Question 9```](https://github.com/JayKim-Analytics/8-week-SQL-Challenge/blob/main/Case%20Study%201%20-%20Danny's%20Diner/Solutions.md#9-if-each-1-spent-equates-to-10-points-and-sushi-has-a-2x-points-multiplier---how-many-points-would-each-customer-have), I was curious as to which solution would be more optimal in terms of completion time within a larger dataset. I will revisit this topic in the future.
 
 #### Steps:
 <details>
+  <summary> Solution 1 </summary>
+	
+- Create a temporary table, joining the ```sales``` table to the ```menu``` and ```members``` tables.
+- Use a **CASE** expression in order to calculate the **SUM** of customer points, depending on their transaction history.
+- Filter results to only include transactions within the month of January. 
+- Use **GROUP BY** to display ```total_points``` for each customer.
+	
+Our assumptions for the CASE expression:
+* If a non-member customer purchases any item besides sushi, they will receive 10 points per $1 spent. 
+* If a non-member customer purchases sushi, they will recieve 20 points per $1 spent. 
+* From the customers ```join_date``` and the following 7 days (inclusive), they received double points per dollar spent on ALL purchases.
+	
+</details>
+
+<details>
+  <summary> Solution 2 </summary>
+	
+- Create a temporary table ```DATES_CTE``` to create a calculated column ```double_points_valid``` within the ```members``` table.
+- Use a **CASE** expression in order to calculate the **SUM** of customer points, depending on their transaction history.
+- Filter results to only include transactions within the month of January. 
+- Use **GROUP BY** to display ```total_points``` for each customer.
+  
+Our assumptions for the CASE expression:
+* If a non-member customer purchases any item besides sushi, they will receive 10 points per $1 spent. 
+* If a non-member customer purchases sushi, they will recieve 20 points per $1 spent. 
+* If the transaction occurs between the customers ```join_date``` and the date of ```double_points_valid```, they receive double points per dollar spent on ALL purchases.
+	
+</details>
+
+<details>
   <summary> Answer </summary>
   
+| customer_id | total_points |
+| ----------- | ------------ |
+| A           | 1370         |
+| B           | 820          |
 
+- Customer A has 1370 total points.
+- Customer B has 820 total points.
+	
 </details>
    
 ***
