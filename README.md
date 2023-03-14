@@ -4,7 +4,7 @@ This respository contains the case studies and their solutions for the #8WeekSQL
 Thank you to Danny for the excellent case studies, you can find him at the following link [here](https://linktr.ee/datawithdanny).
 
 ## :clipboard: Table of Contents
-- [Case Study 1 - Danny's Diner](https://github.com/JayKim-Analytics/8week-SQL-Challenge/edit/main/README.md#case-study-1---dannys-dinner)
+- [Case Study 1 - Danny's Diner](https://github.com/JayKim-Analytics/8-week-SQL-Challenge/tree/main/Case%20Study%201%20-%20Danny's%20Diner)
 - Case Study 2 - Pizza Runner
 - Case Study 3 - Foodie-Fi
 - Case Study 4 - Data Bank
