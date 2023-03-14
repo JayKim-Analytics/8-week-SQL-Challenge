@@ -90,7 +90,7 @@ GROUP BY customer_id, product_name;
  - Create a temporary table, ```ordered_sales```, then use a window function with **DENSE_RANK** to create a new column, ```rank```.
  - Use **DENSE_RANK** as opposed to **RANK** or **ROW_NUMBER** as ```order_date``` has no timestamp. Therefore, there is no distinction made in which item is ordered first, if two or more items are ordered on the same day.
  - Use **GROUP BY** in a new query to show all rows where ```rank = 1```, displaying each customers first purchased item.
- - 
+
 <details>
   <summary> Answer </summary>
   
