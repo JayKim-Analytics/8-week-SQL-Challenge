@@ -535,7 +535,7 @@ SELECT *, (CASE
 FROM CTE AS c;
 ```
 > **Note**
-> The temporary table ```CTE``` functions as an alternative solution to the solution I presented in [Bonus 1]()
+> The temporary table ```CTE``` functions as an alternative solution to the solution I presented in [Bonus 1](https://github.com/JayKim-Analytics/8-week-SQL-Challenge/blob/main/Case%20Study%201%20-%20Danny's%20Diner/Solutions.md#bonus-1-join-all-the-things---recreate-the-table-with-customer_id-order_date-product_name-price-member-yn)
 #### Steps:
 - Create a temporary table, joining the ```sales``` table to the ```menu``` and ```members``` tables.
 - Use a **CASE** expression in order to determine if a customer is a member or not.
@@ -565,4 +565,4 @@ FROM CTE AS c;
 </details>
    
 ***
-***
+
