@@ -2,11 +2,11 @@
 <img src = 'https://8weeksqlchallenge.com/images/case-study-designs/1.png' width = "300" >
 
 ## :clipboard: Table of Contents
-- [Introduction and Problem Statement](https://github.com/JayKim-Analytics/8-week-SQL-Challenge/edit/main/Case%20Study%201%20-%20Danny's%20Diner/README.md#introduction-and-problem-statement)
-- [Entity Relationship Diagram](https://github.com/JayKim-Analytics/8-week-SQL-Challenge/blob/main/Case%20Study%201%20-%20Danny's%20Diner/Solutions.md)
-- [Creating the Schema and Dataset](https://github.com/JayKim-Analytics/8-week-SQL-Challenge/blob/main/Case%20Study%201%20-%20Danny's%20Diner/Solutions.md)
-- [Exploring Example Dataset](https://github.com/JayKim-Analytics/8-week-SQL-Challenge/blob/main/Case%20Study%201%20-%20Danny's%20Diner/Solutions.md)
-- [Case Study Questions](https://github.com/JayKim-Analytics/8-week-SQL-Challenge/blob/main/Case%20Study%201%20-%20Danny's%20Diner/Solutions.md)
+- [Introduction and Problem Statement](https://github.com/JayKim-Analytics/8-week-SQL-Challenge/blob/main/Case%20Study%201%20-%20Danny's%20Diner/README.md#introduction-and-problem-statement)
+- [Entity Relationship Diagram](https://github.com/JayKim-Analytics/8-week-SQL-Challenge/blob/main/Case%20Study%201%20-%20Danny's%20Diner/README.md#entity-relationship-diagram)
+- [Creating the Schema and Dataset](https://github.com/JayKim-Analytics/8-week-SQL-Challenge/blob/main/Case%20Study%201%20-%20Danny's%20Diner/README.md#creating-the-schema-and-dataset)
+- [Exploring Example Dataset](https://github.com/JayKim-Analytics/8-week-SQL-Challenge/blob/main/Case%20Study%201%20-%20Danny's%20Diner/README.md#exploring-example-dataset)
+- [Case Study Questions](https://github.com/JayKim-Analytics/8-week-SQL-Challenge/blob/main/Case%20Study%201%20-%20Danny's%20Diner/README.md#case-study-questions)
 - [Solutions](https://github.com/JayKim-Analytics/8-week-SQL-Challenge/blob/main/Case%20Study%201%20-%20Danny's%20Diner/Solutions.md)
 
 ## Introduction and Problem Statement
