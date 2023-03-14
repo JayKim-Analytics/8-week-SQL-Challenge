@@ -42,11 +42,11 @@ ORDER BY total DESC;
 
 -- 5. Which item was the most popular for each customer?
 WITH order_count_CTE AS (
-SELECT s.customer_id, m.product_name, COUNT(m.product_id) AS order_count,
+ SELECT s.customer_id, m.product_name, COUNT(m.product_id) AS order_count,
 	DENSE_RANK() OVER(PARTITION BY s.customer_id ORDER BY COUNT(s.customer_id) DESC) AS rank
-FROM menu AS m
- INNER JOIN sales AS s
- ON m.product_id = s.product_id
+ FROM menu AS m
+	INNER JOIN sales AS s
+	ON m.product_id = s.product_id
 GROUP BY s.customer_id, m.product_name
 )
     
@@ -73,7 +73,7 @@ WHERE DR = 1;
 -- Solution 1.
 WITH CTE AS (
  SELECT s.customer_id, s.order_date, ms.join_date, s.product_id,
- DENSE_RANK() OVER(PARTITION BY s.customer_id ORDER BY s.order_date DESC) AS DR
+ 	DENSE_RANK() OVER(PARTITION BY s.customer_id ORDER BY s.order_date DESC) AS DR
  FROM sales AS s
 	INNER JOIN members AS ms 
 	ON s.customer_id = ms.customer_id
@@ -88,7 +88,7 @@ WHERE DR = 1;
 -- Solution 2.
 WITH CTE AS (
  SELECT s.customer_id, s.order_date, ms.join_date, s.product_id, product_name,
- DENSE_RANK() OVER(PARTITION BY s.customer_id ORDER BY s.order_date DESC) AS DR
+ 	DENSE_RANK() OVER(PARTITION BY s.customer_id ORDER BY s.order_date DESC) AS DR
  FROM sales AS s
 	INNER JOIN members AS ms 
 	ON s.customer_id = ms.customer_id
@@ -132,9 +132,9 @@ WITH customer_points AS (
 		ELSE (price * 10)
 		END AS points
 	FROM menu
-	)
+)
 SELECT s.customer_id, SUM(p.points) AS total_points
-  FROM customer_points AS p
+FROM customer_points AS p
   INNER JOIN sales AS s 
   ON p.product_id = s.product_id
 GROUP BY s.customer_id;
@@ -177,7 +177,7 @@ FROM DATES_CTE AS d
   ON d.customer_id = s.customer_id
   INNER JOIN menu AS m 
   ON s.product_id = m.product_id
- WHERE s.order_date < EOMONTH('2021-01-31')
+WHERE s.order_date < EOMONTH('2021-01-31')
 GROUP BY d.customer_id;
 
 /* ------------------
@@ -186,9 +186,9 @@ GROUP BY d.customer_id;
 
 -- Join All The Things
 WITH CTE AS (
-	SELECT s.customer_id, s.order_date, m.product_name, m.price
-	FROM sales AS s, menu AS m
-	WHERE s.product_id = m.product_id
+ SELECT s.customer_id, s.order_date, m.product_name, m.price
+ FROM sales AS s, menu AS m
+ WHERE s.product_id = m.product_id
 )
 
 SELECT c.customer_id, order_date, product_name, price,
@@ -197,7 +197,8 @@ SELECT c.customer_id, order_date, product_name, price,
 	ELSE 'N'
 	END ) AS member
 FROM CTE AS c
-LEFT JOIN members AS ms ON c.customer_id = ms.customer_id;
+ LEFT JOIN members AS ms 
+ ON c.customer_id = ms.customer_id;
 
 -- Rank All The Things
 WITH CTE AS (
