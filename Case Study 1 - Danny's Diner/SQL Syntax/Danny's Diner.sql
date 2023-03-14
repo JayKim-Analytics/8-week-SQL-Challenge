@@ -34,7 +34,7 @@ SELECT customer_id, product_name
   GROUP BY customer_id, product_name;
 
 --4. What is the most purchased item on the menu and how many times was it purchased by all customers?
-SELECT TOP 1 m.product_name, SUM(s.product_id) AS total
+SELECT TOP 1 m.product_name, COUNT(s.product_id) AS total
   FROM sales AS s
   INNER JOIN menu AS m
   ON s.product_id = m.product_id
