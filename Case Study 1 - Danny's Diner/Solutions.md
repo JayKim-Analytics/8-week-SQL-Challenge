@@ -299,7 +299,7 @@ GROUP BY s.customer_id;
    
 ***
 
-###  If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?
+###  9. If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?
 #### Solution 1
 ```sql
 WITH CTE AS (
@@ -333,7 +333,7 @@ FROM customer_points AS p
 GROUP BY s.customer_id;
 ```
 
-For Question 9, I present two solutions that provide the identical result. Similar to the consideration presented in [```Question 7```](https://github.com/JayKim-Analytics/8-week-SQL-Challenge/blob/main/Case%20Study%201%20-%20Danny's%20Diner/Solutions.md#7-which-item-was-purchased-just-before-the-customer-became-a-member), I was curious as to which solution would be more optimal in terms of completion time. I will revisit this topic in the future.
+For Question 9, I present two solutions that provide the identical result. Similar to the consideration presented in [```Question 7```](https://github.com/JayKim-Analytics/8-week-SQL-Challenge/blob/main/Case%20Study%201%20-%20Danny's%20Diner/Solutions.md#7-which-item-was-purchased-just-before-the-customer-became-a-member), I was curious as to which solution would be more optimal in terms of completion time within a larger dataset. I will revisit this topic in the future.
 
 #### Steps:
 <details>
@@ -366,6 +366,63 @@ For Question 9, I present two solutions that provide the identical result. Simil
 - Customer A had 860 points.
 - Customer B had 940 points.
 - Customer C has 360 points.
+
+</details>
+   
+***
+
+###  10. In the first week after a customer joins the program (including their join date) they earn 2x points on all items, not just sushi - how many points do customer A and B have at the end of January?
+#### Solution 1 
+```sql
+WITH CTE AS (
+	SELECT ms.customer_id, m.product_id, m.product_name, m.price, order_date, join_date
+	FROM sales AS s
+	INNER JOIN menu AS m 
+		ON s.product_id=m.product_id
+	INNER JOIN members AS ms 
+		ON s.customer_id = ms.customer_id
+)
+
+SELECT customer_id, 
+	SUM(CASE 
+		WHEN product_name = 'sushi' THEN (2*10*price)
+		WHEN order_date BETWEEN join_date AND DATEADD(day, 6, join_date)  THEN (2*10*price) 
+		ELSE (price * 10) 
+		END) AS customer_points
+FROM CTE
+WHERE order_date < EOMONTH('2021-01-31')
+GROUP BY customer_id;
+```
+
+#### Solution 2 
+```sql
+WITH DATES_CTE AS (
+	SELECT *,
+		DATEADD(day, 6, join_date) AS double_points_valid
+	FROM members AS ms 
+)
+
+SELECT d.customer_id,
+	SUM(CASE 
+	WHEN m.product_name = 'sushi' THEN 2*10*m.price
+	WHEN s.order_date BETWEEN d.join_date AND d.double_points_valid THEN 2*10*m.price
+	ELSE 10*m.price
+	END) AS points
+FROM DATES_CTE AS d
+	INNER JOIN sales AS s 
+	ON d.customer_id = s.customer_id
+	INNER JOIN menu AS m 
+	ON s.product_id = m.product_id
+WHERE s.order_date < EOMONTH('2021-01-31')
+GROUP BY d.customer_id;
+```
+
+For Question 10, I present two solutions that provide the identical result. Similar to the consideration presented in [```Question 9```]([https://github.com/JayKim-Analytics/8-week-SQL-Challenge/blob/main/Case%20Study%201%20-%20Danny's%20Diner/Solutions.md#7-which-item-was-purchased-just-before-the-customer-became-a-member](https://github.com/JayKim-Analytics/8-week-SQL-Challenge/blob/main/Case%20Study%201%20-%20Danny's%20Diner/Solutions.md#if-each-1-spent-equates-to-10-points-and-sushi-has-a-2x-points-multiplier---how-many-points-would-each-customer-have)), I was curious as to which solution would be more optimal in terms of completion time within a larger dataset. I will revisit this topic in the future.
+
+#### Steps:
+<details>
+  <summary> Answer </summary>
+  
 
 </details>
    
