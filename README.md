@@ -14,4 +14,10 @@ Thank you to Danny for the excellent case studies, you can find him at the follo
 - Case Study 8 - Fresh Segments
 
 ## Case Study 1 - Danny's Dinner
-![Case Study 1 - Danny's Dinner](https://8weeksqlchallenge.com/images/case-study-designs/1.png)
+<img src = 'https://8weeksqlchallenge.com/images/case-study-designs/1.png' width = "300" >
+
+### Business Task
+Danny wants to use the data to answer a few simple questions about his customers, especially about their visiting patterns, how much money they’ve spent and also which menu items are their favourite. He plans on using these insights to help him decide whether he should expand the existing customer loyalty program - additionally he needs help to generate some basic datasets so his team can easily inspect the data without needing to use SQL.
+
+Click [here](https://8weeksqlchallenge.com/case-study-1/) to view the original case study. Click [here](https://github.com/JayKim-Analytics/8-week-SQL-Challenge/blob/main/Case%20Study%201%20-%20Danny's%20Diner/Solutions.md) to view my solutions on Github. 
+
