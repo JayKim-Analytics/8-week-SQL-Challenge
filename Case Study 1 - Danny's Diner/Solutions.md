@@ -298,3 +298,75 @@ GROUP BY s.customer_id;
 </details>
    
 ***
+
+###  If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?
+#### Solution 1
+```sql
+WITH CTE AS (
+	SELECT s.customer_id, m.product_id, m.product_name, m.price, order_date
+	FROM sales AS s
+	INNER JOIN menu AS m 
+	ON s.product_id=m.product_id
+)
+
+SELECT customer_id, SUM(CASE 
+	WHEN product_name = 'Sushi' THEN (2*10*price) 
+	ELSE (price * 10) 
+	END) AS total_points
+FROM CTE
+GROUP BY customer_id;
+```
+
+#### Solution 2
+```sql
+WITH customer_points AS (
+	SELECT *, CASE 
+		WHEN product_id = 1 THEN (2*10*price)
+		ELSE (price * 10)
+		END AS points
+	FROM menu
+	)
+SELECT s.customer_id, SUM(p.points) AS total_points
+FROM customer_points AS p
+	INNER JOIN sales AS s 
+	ON p.product_id = s.product_id
+GROUP BY s.customer_id;
+```
+
+For Question 9, I present two solutions that provide the identical result. Similar to the consideration presented in [```Question 7```](https://github.com/JayKim-Analytics/8-week-SQL-Challenge/blob/main/Case%20Study%201%20-%20Danny's%20Diner/Solutions.md#7-which-item-was-purchased-just-before-the-customer-became-a-member), I was curious as to which solution would be more optimal in terms of completion time. I will revisit this topic in the future.
+
+#### Steps:
+<details>
+  <summary> Solution 1 </summary>
+	
+- Create a temporary table, joining the ```sales``` table to the ```menu``` table.
+- Use a **CASE** expression in order to calculate the **SUM** of customer points, depending on their transaction history.
+- Use **GROUP BY** to display ```total_points``` for each customer.
+	
+</details>
+
+<details>
+  <summary> Solution 2 </summary>
+	
+- Create a temporary table ```customer_points```, and use a **CASE** expression to calculate the points gained for each transaction in a customers' transaction history.
+- Join ```customer_points``` to the ```sales``` table in order to calculate the **SUM** of customers points.
+- Use **GROUP BY** to display ```total_points``` for each customer.
+	
+</details>
+
+<details>
+  <summary> Answer </summary>
+	
+| customer_id | total_points |
+| ----------- | ------------ |
+| A           | 860          |
+| B           | 940          |
+| C           | 360          |
+	
+- Customer A had 860 points.
+- Customer B had 940 points.
+- Customer C has 360 points.
+
+</details>
+   
+***
