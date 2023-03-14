@@ -284,14 +284,17 @@ GROUP BY s.customer_id;
 - Filter the query to select rows where ```order_date``` is value before ```join_date```.
 - Use **COUNT** and **DISTINCT** together to find the total of unique ```product_id``` values.
 - Use **GROUP BY** to find ```total_amount_spent``` per each customer.
-- 
+
 <details>
   <summary> Answer </summary>
   
   | customer_id | unique_item_purchase |  total_amount_spent  |
   | ----------- | ------------ | ------------ |
   | A           | 2            | 25           |
-  | B           |	2	           | 40           |
+  | B           | 2	       | 40           |
+	
+- Customer A purchased 2 items and spent $25, prior to membership.
+- Customer B purchased 2 items and spent $40, prior to membership.
 </details>
    
 ***
