@@ -74,11 +74,11 @@ GROUP BY s.customer_id;
   
   ```sql
 WITH ordered_sales AS (
-    SELECT s.customer_id, s.order_date, m.product_name,
-      DENSE_RANK() OVER(PARTITION BY s.customer_id ORDER BY s.order_date) AS rank 
-    FROM sales as s
-    INNER JOIN menu as m
-    ON s.product_id = m.product_id
+  SELECT s.customer_id, s.order_date, m.product_name,
+	DENSE_RANK() OVER(PARTITION BY s.customer_id ORDER BY s.order_date) AS rank 
+  FROM sales as s
+  	INNER JOIN menu as m
+  ON s.product_id = m.product_id
 )
 SELECT customer_id, product_name
 FROM ordered_sales
@@ -112,10 +112,10 @@ GROUP BY customer_id, product_name;
  ### 4. What is the most purchased item on the menu and how many times was it purchased by all customers?
  
  ```sql
- SELECT TOP 1 m.product_name, COUNT(s.product_id) AS total
+SELECT TOP 1 m.product_name, COUNT(s.product_id) AS total
 FROM sales AS s
-  INNER JOIN menu AS m
-  ON s.product_id = m.product_id
+ INNER JOIN menu AS m
+ ON s.product_id = m.product_id
 GROUP BY product_name
 ORDER BY total DESC;
  ```
@@ -141,18 +141,18 @@ ORDER BY total DESC;
    
    ###  5. Which item was the most popular for each customer?
 ```sql
-  WITH order_count_CTE AS (
-    SELECT s.customer_id, m.product_name, COUNT(m.product_id) AS order_count,
-      DENSE_RANK() OVER(PARTITION BY s.customer_id ORDER BY COUNT(s.customer_id) DESC) AS rank
-    FROM menu AS m
-      INNER JOIN sales AS s
-      ON m.product_id = s.product_id
-    GROUP BY s.customer_id, m.product_name
-    )
+WITH order_count_CTE AS (
+ SELECT s.customer_id, m.product_name, COUNT(m.product_id) AS order_count,
+	DENSE_RANK() OVER(PARTITION BY s.customer_id ORDER BY COUNT(s.customer_id) DESC) AS rank
+ FROM menu AS m
+	INNER JOIN sales AS s
+	ON m.product_id = s.product_id
+GROUP BY s.customer_id, m.product_name
+)
     
-  SELECT customer_id, product_name, order_count
-  FROM most_popular_CTE 
-  WHERE rank = 1;
+SELECT customer_id, product_name, order_count
+FROM most_popular_CTE 
+WHERE rank = 1;
 ```
 
 #### Steps:
@@ -181,14 +181,15 @@ ORDER BY total DESC;
 ### 6. Which item was purchased first by the customer after they became a member?
 ```sql
 WITH CTE AS (
-	SELECT s.customer_id, m.product_name, s.order_date, ms.join_date,
-	  DENSE_RANK() OVER(PARTITION BY s.customer_id ORDER BY s.order_date) AS DR
-	FROM sales AS s
-	  INNER JOIN menu AS m ON s.product_id = m.product_id
-	  INNER JOIN members AS ms ON s.customer_id = ms.customer_id
-	WHERE s.order_date >= ms.join_date
-	)
-  
+ SELECT s.customer_id, m.product_name, s.order_date, ms.join_date,
+ 	DENSE_RANK() OVER(PARTITION BY s.customer_id ORDER BY s.order_date) AS DR
+ FROM sales AS s
+	INNER JOIN menu AS m 
+	ON s.product_id = m.product_id
+	INNER JOIN members AS ms 
+	ON s.customer_id = ms.customer_id
+ WHERE s.order_date >= ms.join_date
+)
 SELECT customer_id, product_name, order_date
 FROM CTE 
 WHERE DR = 1;
@@ -218,31 +219,34 @@ WHERE DR = 1;
 #### Solution 1
 ```sql
 WITH CTE AS (
-	SELECT s.customer_id, s.order_date, ms.join_date, s.product_id,
-	DENSE_RANK() OVER(PARTITION BY s.customer_id ORDER BY s.order_date DESC) AS DR
-	FROM sales AS s
-	INNER JOIN members AS ms ON s.customer_id = ms.customer_id
-	WHERE s.order_date < ms.join_date
+ SELECT s.customer_id, s.order_date, ms.join_date, s.product_id,
+ 	DENSE_RANK() OVER(PARTITION BY s.customer_id ORDER BY s.order_date DESC) AS DR
+ FROM sales AS s
+	INNER JOIN members AS ms 
+	ON s.customer_id = ms.customer_id
+ WHERE s.order_date < ms.join_date
 	)
 SELECT customer_id, order_date, product_name
 FROM CTE 
-INNER JOIN menu AS m ON CTE.product_id = m.product_id
+ INNER JOIN menu AS m 
+ ON CTE.product_id = m.product_id
 WHERE DR = 1;
 ```
 
 #### Solution 2
 ```sql
 WITH CTE AS (
-	SELECT s.customer_id, s.order_date, ms.join_date, s.product_id, product_name,
-	DENSE_RANK() OVER(PARTITION BY s.customer_id ORDER BY s.order_date DESC) AS DR
-	FROM sales AS s
-	INNER JOIN members AS ms ON s.customer_id = ms.customer_id
-	INNER JOIN menu AS m ON s.product_id = m.product_id
-	WHERE s.order_date < ms.join_date
-	)
-SELECT customer_id, product_name, order_date
+ SELECT s.customer_id, s.order_date, ms.join_date, s.product_id, product_name,
+ 	DENSE_RANK() OVER(PARTITION BY s.customer_id ORDER BY s.order_date DESC) AS DR
+ FROM sales AS s
+	INNER JOIN members AS ms 
+	ON s.customer_id = ms.customer_id
+	INNER JOIN menu AS m 
+	ON s.product_id = m.product_id
+ WHERE s.order_date < ms.join_date
+)
+SELECT customer_id, order_date, product_name
 FROM CTE 
-INNER JOIN menu AS m ON CTE.product_id = m.product_id
 WHERE DR = 1;
 ```
 These two solutions only differ in where the second ```join``` of the ```menu``` table occurs. With both joins occuring within the temporary table for **Solution 1**, while the second join occurs outside ofthe temporary table for **Solution 2**.
@@ -303,16 +307,15 @@ GROUP BY s.customer_id;
 #### Solution 1
 ```sql
 WITH CTE AS (
-	SELECT s.customer_id, m.product_id, m.product_name, m.price, order_date
-	FROM sales AS s
+ SELECT s.customer_id, m.product_id, m.product_name, m.price, order_date
+ FROM sales AS s
 	INNER JOIN menu AS m 
 	ON s.product_id=m.product_id
 )
-
 SELECT customer_id, SUM(CASE 
-	WHEN product_name = 'Sushi' THEN (2*10*price) 
-	ELSE (price * 10) 
-	END) AS total_points
+		WHEN product_name = 'Sushi' THEN (2*10*price) 
+		ELSE (price * 10) 
+		END) AS total_points
 FROM CTE
 GROUP BY customer_id;
 ```
@@ -325,11 +328,11 @@ WITH customer_points AS (
 		ELSE (price * 10)
 		END AS points
 	FROM menu
-	)
+)
 SELECT s.customer_id, SUM(p.points) AS total_points
 FROM customer_points AS p
-	INNER JOIN sales AS s 
-	ON p.product_id = s.product_id
+  INNER JOIN sales AS s 
+  ON p.product_id = s.product_id
 GROUP BY s.customer_id;
 ```
 
@@ -375,20 +378,19 @@ For Question 9, I present two solutions that provide an identical result. Simila
 #### Solution 1 
 ```sql
 WITH CTE AS (
-	SELECT ms.customer_id, m.product_id, m.product_name, m.price, order_date, join_date
-	FROM sales AS s
+ SELECT ms.customer_id, m.product_id, m.product_name, m.price, order_date, join_date
+ FROM sales AS s
 	INNER JOIN menu AS m 
-		ON s.product_id=m.product_id
+	ON s.product_id=m.product_id
 	INNER JOIN members AS ms 
-		ON s.customer_id = ms.customer_id
+	ON s.customer_id = ms.customer_id
 )
-
 SELECT customer_id, 
 	SUM(CASE 
 		WHEN product_name = 'sushi' THEN (2*10*price)
 		WHEN order_date BETWEEN join_date AND DATEADD(day, 6, join_date)  THEN (2*10*price) 
 		ELSE (price * 10) 
-		END) AS total_points
+		END) AS customer_points
 FROM CTE
 WHERE order_date < EOMONTH('2021-01-31')
 GROUP BY customer_id;
@@ -397,22 +399,21 @@ GROUP BY customer_id;
 #### Solution 2 
 ```sql
 WITH DATES_CTE AS (
-	SELECT *,
-		DATEADD(day, 6, join_date) AS double_points_valid
-	FROM members AS ms 
+ SELECT *,
+	DATEADD(day, 6, join_date) AS double_points_valid
+ FROM members AS ms 
 )
-
 SELECT d.customer_id,
 	SUM(CASE 
 	WHEN m.product_name = 'sushi' THEN 2*10*m.price
 	WHEN s.order_date BETWEEN d.join_date AND d.double_points_valid THEN 2*10*m.price
 	ELSE 10*m.price
-	END) AS total_points
+	END) AS points
 FROM DATES_CTE AS d
-	INNER JOIN sales AS s 
-	ON d.customer_id = s.customer_id
-	INNER JOIN menu AS m 
-	ON s.product_id = m.product_id
+  INNER JOIN sales AS s 
+  ON d.customer_id = s.customer_id
+  INNER JOIN menu AS m 
+  ON s.product_id = m.product_id
 WHERE s.order_date < EOMONTH('2021-01-31')
 GROUP BY d.customer_id;
 ```
@@ -469,9 +470,9 @@ Our assumptions for the CASE expression:
 ### Bonus 1. Join All The Things - Recreate the table with: customer_id, order_date, product_name, price, member (Y/N)
 ```sql
 WITH CTE AS (
-	SELECT s.customer_id, s.order_date, m.product_name, m.price
-	FROM sales AS s, menu AS m
-	WHERE s.product_id = m.product_id
+ SELECT s.customer_id, s.order_date, m.product_name, m.price
+ FROM sales AS s, menu AS m
+ WHERE s.product_id = m.product_id
 )
 
 SELECT c.customer_id, order_date, product_name, price,
@@ -480,8 +481,8 @@ SELECT c.customer_id, order_date, product_name, price,
 	ELSE 'N'
 	END ) AS member
 FROM CTE AS c
-LEFT JOIN members AS ms 
-ON c.customer_id = ms.customer_id;
+ LEFT JOIN members AS ms 
+ ON c.customer_id = ms.customer_id;
 ```
 
 #### Steps:
@@ -516,16 +517,16 @@ ON c.customer_id = ms.customer_id;
 ### Bonus 2. Rank All The Things - Danny also requires further information about the ```ranking``` of customer products, but he purposely does not need the ranking for non-member purchases so he expects null ```ranking``` values for the records when customers are not yet part of the loyalty program.
 ```sql
 WITH CTE AS (
-	SELECT s.customer_id, s.order_date, m.product_name, m.price,
+ SELECT s.customer_id, s.order_date, m.product_name, m.price,
 	(CASE  
-		WHEN order_date >= ms.join_date THEN 'Y' 
-		WHEN order_date < ms.join_date THEN 'N'
-		ELSE 'N' END ) AS member
-	FROM sales AS s
+	WHEN order_date >= ms.join_date THEN 'Y' 
+	WHEN order_date < ms.join_date THEN 'N'
+	ELSE 'N' END ) AS member
+ FROM sales AS s
 	LEFT JOIN menu AS m 
-		ON s.product_id = m.product_id
+	ON s.product_id = m.product_id
 	LEFT JOIN members AS ms 
-		ON s.customer_id = ms.customer_id
+	ON s.customer_id = ms.customer_id
 )
 
 SELECT *, (CASE 
