@@ -1,0 +1,82 @@
+/* --------------------------------
+   --CASE STUDY #2: PIZZA RUNNER--
+   ---------------------------------*/
+
+--Author: Jay Kim
+--Completed using: Microsoft SQL Server Management Studio 18
+
+/* ------------------------------------
+-- B. Runner and Customer Experience --
+------------------------------------ */
+
+-- 1. How many runners signed up for each 1 week period?
+SELECT runner_id, 
+	CASE 
+	WHEN registration_date BETWEEN '2021-01-01' AND '2021-01-07' THEN 'Week 1'
+	WHEN registration_date BETWEEN '2021-01-08' AND '2021-01-14'THEN 'Week 2'
+	ELSE 'Week 3'
+	END AS runner_signups
+FROM runners
+GROUP BY registration_date, runner_id
+
+
+-- 2. What was the average time in minutes it took for each runner to arrive at the Pizza Runner HQ to pickup the order?
+-- pickup_time is the timestamp at which the runner arrives to pick up the pizza
+WITH CTE AS (
+	SELECT ro.runner_id, c.customer_id, DATEDIFF(MINUTE, c.order_time, ro.pickup_time) AS runner_time
+	FROM customer_orders AS c
+	INNER JOIN runner_orders AS ro
+	ON c.order_id = ro.order_id
+	WHERE cancellation IS NULL -- Rows where cancellation is null means that the order was *not* cancelled.
+) 
+
+SELECT runner_id, AVG(runner_time) AS average_pickup_time
+FROM CTE
+GROUP BY runner_id
+
+
+-- 3. Is there any relationship between the number of pizzas and how long the order takes to prepare?
+WITH CTE AS (
+	SELECT c.order_id, COUNT(c.order_id) AS pizzas_count, DATEDIFF(MINUTE, c.order_time, ro.pickup_time) AS prep_time
+	FROM customer_orders AS c
+	INNER JOIN runner_orders AS ro
+	ON c.order_id = ro.order_id
+	WHERE cancellation IS NULL -- Rows where cancellation is null means that the order was *not* cancelled.
+	GROUP BY c.order_id, c.order_time, ro.pickup_time
+) 
+
+SELECT pizzas_count, AVG(prep_time) AS average_prep_time
+FROM CTE
+GROUP BY pizzas_count
+
+
+-- 4. What was the average distance travelled for each customer?
+SELECT customer_id, AVG(CAST(distance AS INT)) AS average_distance
+FROM customer_orders AS c
+INNER JOIN runner_orders AS ro
+ON c.order_id = ro.order_id
+WHERE cancellation IS NULL -- Rows where cancellation is null means that the order was *not* cancelled.
+GROUP BY customer_id
+
+
+--5. What was the difference between the longest and shortest delivery times for all orders?
+SELECT (MAX(duration) - MIN(duration)) AS delivery_diff 
+FROM runner_orders
+WHERE cancellation IS NULL
+
+
+-- 6. What was the average speed for each runner for each delivery and do you notice any trend for these values?
+SELECT * FROM runner_orders
+SELECT runner_id, ROUND(AVG(distance),2) AS average_distance, AVG(duration) AS average_speed
+FROM runner_orders
+WHERE cancellation IS NULL
+GROUP BY runner_id
+-- larger average distance = greater average speed of delivery time
+
+
+-- 7. What is the successful delivery percentage for each runner?
+SELECT runner_id, ROUND(100 * SUM(CASE
+	WHEN cancellation IS NOT NULL THEN 0
+	ELSE 1 END)/ COUNT(*), 0) AS success_percent
+FROM runner_orders
+GROUP BY runner_id
