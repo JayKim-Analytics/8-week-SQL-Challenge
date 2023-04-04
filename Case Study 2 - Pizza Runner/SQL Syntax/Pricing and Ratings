@@ -1,0 +1,157 @@
+/* --------------------------------
+   --CASE STUDY #2: PIZZA RUNNER--
+   ---------------------------------*/
+
+--Author: Jay Kim
+--Completed using: Microsoft SQL Server Management Studio 18
+
+/* -----------------------------
+---- D. Pricing and Ratings ----
+----------------------------- */
+
+-- 1. If a Meat Lovers pizza costs $12 and Vegetarian costs $10 and there were no charges for changes - how much money has Pizza Runner made so far if there are no delivery fees?
+
+SELECT SUM(pizza_cost) AS total_profit
+FROM (
+	SELECT CASE
+		WHEN pizza_id = 1 THEN 12
+		ELSE 10 
+		END AS pizza_cost
+	FROM customer_orders
+) x
+
+
+-- 2. What if there was an additional $1 charge for any pizza extras? 
+WITH pizza_cost_cte AS (
+	SELECT record_id, CASE
+		WHEN pizza_id = 1 THEN 12
+		ELSE 10 
+		END AS pizza_cost
+	FROM customer_orders
+),
+extras_count_cte AS (
+	SELECT c.record_id, pizza_id, CAST(COUNT(topping_id) AS INT) AS extras_count
+	FROM customer_orders AS c -- order_id, pizza_id, count(topping_id)
+	JOIN extras AS e
+	ON c.record_id = e.record_id
+	GROUP BY c.record_id, pizza_id
+),
+final_cte AS (
+	SELECT c.record_id, c.order_id, pizza_cost, extras, CASE 
+		WHEN c.record_id IN (SELECT record_id
+							FROM extras_count_cte AS e
+							WHERE c.record_id = e.record_id)
+		THEN pc.pizza_cost + (SELECT extras_count FROM extras_count_cte AS e WHERE c.record_id = e.record_id)
+			ELSE pc.pizza_cost
+		END AS cost
+		
+	FROM customer_orders AS c
+	INNER JOIN pizza_cost_cte AS pc 
+	ON c.record_id = pc.record_id
+
+)
+
+SELECT order_id, extras, cost FROM final_cte
+
+
+
+-- 3.The Pizza Runner team now wants to add an additional ratings system that allows customers to rate their runner, how would you design an additional table for this new dataset 
+-- generate a schema for this new table and insert your own data for ratings for each successful customer order between 1 to 5.
+-- table: pizza_ratings
+
+DROP TABLE IF EXISTS order_rating
+CREATE TABLE dbo.order_rating (
+	order_id INT NOT null,
+	runner_id INT NOT null,
+	rating INT null, -- How would you rate the quality of your service overall?
+)
+SELECT order_id, runner_id 
+INTO order_rating
+FROM runner_orders
+WHERE cancellation IS NULL
+
+ALTER TABLE order_rating
+ADD rating INT NULL 
+UPDATE order_rating 
+SET rating = ROUND( 5 * RAND(convert(varbinary, newid())), 0) +1
+
+
+
+-- 4. Using your newly generated table - can you join all of the information together to form a table which has the following information for successful deliveries? 
+
+WITH cte_1 AS (
+	SELECT customer_id, c.order_id, order_time, pickup_time, duration, ro.cancellation,
+		CASE 
+			WHEN duration = 0 THEN NULL
+			ELSE ROUND(distance/duration * 60, 2) 
+			END AS speed_km_hr,
+		CASE 
+			WHEN DATEDIFF(MINUTE, c.order_time, ro.pickup_time) < 0 THEN NULL 
+			ELSE DATEDIFF(MINUTE, c.order_time, ro.pickup_time) 
+			END  AS order_to_pickup_time
+	FROM customer_orders AS c
+	INNER JOIN runner_orders AS ro
+	ON c.order_id = ro.order_id
+),
+cte_2 AS (
+	SELECT order_id, COUNT(order_id) AS pizza_count
+	FROM customer_orders
+	GROUP BY order_Id
+),
+cte_3 AS (
+	SELECT customer_id, cte_1.order_id, pizza_count, duration, speed_km_hr, order_to_pickup_time, cancellation, order_time, pickup_time
+	FROM cte_1
+	INNER JOIN cte_2
+	ON cte_1.order_id = cte_2.order_id
+)
+
+SELECT * FROM cte_3
+
+
+-- 5. If a Meat Lovers pizza was $12 and Vegetarian $10 fixed prices with no cost for extras and each runner is paid $0.30 per kilometre traveled 
+-- how much money does Pizza Runner have left over after these deliveries?
+
+WITH cte_1 AS (
+	SELECT order_id, SUM(pizza_cost) AS total_profit
+	FROM (
+		SELECT order_id, CASE
+			WHEN pizza_id = 1 THEN 12
+			ELSE 10 
+			END AS pizza_cost
+		FROM customer_orders
+	) x
+	GROUP BY order_id
+),
+cte_2 AS (
+	SELECT order_id, SUM(payment) AS runner_comp
+	FROM (
+		SELECT order_id, runner_id, SUM(distance) AS total_km_traveled, ROUND(SUM(DISTANCE)*0.30, 2) AS payment
+		FROM runner_orders
+		WHERE cancellation IS NULL
+		GROUP BY order_id,runner_id
+	) x
+	GROUP BY order_id
+)
+
+SELECT (SUM(total_profit) - SUM(runner_comp)) AS pizza_runner_funds
+FROM cte_1 
+INNER JOIN cte_2
+ON cte_1.order_id = cte_2.order_id
+
+
+-- Bonus Question
+/* 
+If Danny wants to expand his range of pizzas - how would this impact the existing data design? 
+Write an INSERT statement to demonstrate what would happen if a new Supreme pizza with all the toppings was added to the Pizza Runner menu?
+*/
+
+SELECT * FROM customer_orders
+SELECT * FROM pizza_names
+SELECT * FROM pizza_recipes
+SELECT * FROM pizza_toppings
+
+INSERT INTO pizza_names
+VALUES (3, 'Supreme')
+
+INSERT INTO pizza_recipes
+VALUES (3, ('1,2,3,4,6,7,8,9,10,11,12'))
