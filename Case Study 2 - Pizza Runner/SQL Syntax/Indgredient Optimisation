@@ -1,0 +1,207 @@
+/* --------------------------------
+   --CASE STUDY #2: PIZZA RUNNER--
+   ---------------------------------*/
+
+--Author: Jay Kim
+--Completed using: Microsoft SQL Server Management Studio 18
+
+/* -----------------------------
+-- C. Ingredient Optimisation --
+----------------------------- */
+
+-- Data cleaning specifically required for this problem set.
+-- Add new column 'record_id' to
+ALTER TABLE dbo.customer_orders
+ADD record_id INT IDENTITY(1,1);   
+
+-- Transform pizza_toppings to change comma seperated ids
+ SELECT	p.pizza_id, p.topping_id, pt.topping_name
+ INTO dbo.clean_pizza_toppings
+ FROM 
+     pizza_recipes1 as p
+     JOIN pizza_toppings as pt
+     ON p.topping_id = pt.topping_id;
+
+
+-- Create Table of Extras
+SELECT c.record_id, TRIM(e.value) AS topping_id
+INTO dbo.extras
+FROM customer_orders AS c
+CROSS APPLY STRING_SPLIT(c.extras, ',') AS e
+
+-- Create table of Exclusions
+SELECT c.record_id, TRIM(e.value) AS topping_id
+INTO dbo.exclusions
+FROM customer_orders AS c
+CROSS APPLY STRING_SPLIT(c.exclusions, ',') AS e
+
+-- Normalize pizza_recipes table
+select * from pizza_recipes
+DROP TABLE IF EXISTS pizza_recipes1
+CREATE TABLE pizza_recipes1 (
+	pizza_id int,
+	topping_id int
+)
+INSERT INTO pizza_recipes1
+(pizza_id, topping_id)
+VALUES
+(1,1),
+(1,2),
+(1,3),
+(1,4),
+(1,5),
+(1,6),
+(1,8),
+(1,10),
+(2,4),
+(2,6),
+(2,7),
+(2,9),
+(2,11),
+(2,12);
+
+
+-- 1. What are the standard ingredients for each pizza?
+WITH CTE AS (
+	SELECT r1.pizza_id, topping_name, pizza_name -- r1.pizza_id, toppings, topping_id, topping_name, pizza_name
+	FROM pizza_recipes1 AS r1
+	INNER JOIN pizza_toppings AS t
+	ON r1.toppings = t.topping_id
+	INNER JOIN pizza_names AS n
+	ON r1.pizza_id = n.pizza_id
+)
+
+SELECT pizza_name, STRING_AGG(topping_name, ',') AS standard_toppings
+FROM CTE
+GROUP BY pizza_name	
+
+
+
+-- 2. What was the most commonly added extra?
+SELECT topping_name, COUNT(pizza_id) AS added_extras
+FROM customer_orders AS c
+  CROSS APPLY STRING_SPLIT(extras, ',') AS e
+  INNER JOIN pizza_toppings AS t
+  ON e.value = t.topping_id
+GROUP BY topping_name
+ORDER BY added_extras DESC
+
+
+
+-- 3. What was the most common exclusion?
+SELECT topping_name, COUNT(pizza_id) AS exclusions_count
+FROM customer_orders AS c
+  CROSS APPLY STRING_SPLIT(exclusions, ',') AS e
+  INNER JOIN pizza_toppings AS t
+  ON e.value = t.topping_id
+GROUP BY topping_name
+ORDER BY exclusions_count DESC
+
+
+
+-- 4. Generate an order item for each record in the customers_orders table in the format of one of the following: 
+WITH extras_cte AS (
+	SELECT record_id, 'Extra ' + STRING_AGG(t.topping_name, ', ') as record_options
+	FROM
+		customer_orders c
+	CROSS APPLY STRING_SPLIT(extras, ',') AS e
+	INNER JOIN pizza_toppings AS t
+	ON e.value = t.topping_id
+	GROUP BY record_id
+),
+exclusions_cte AS (
+	SELECT record_id,
+		'Exclude ' + STRING_AGG(t.topping_name, ', ') as record_options
+	FROM customer_orders AS c
+	CROSS APPLY STRING_SPLIT(exclusions, ',') AS e
+	INNER JOIN pizza_toppings AS t
+	ON e.value = t.topping_id
+	GROUP BY record_id
+),
+union_cte AS
+(
+	SELECT * FROM extras_cte
+	UNION
+	SELECT * FROM exclusions_cte
+),
+
+final_cte AS (
+	SELECT c.record_id, CONCAT_WS(' - ', p.pizza_name, STRING_AGG(cte.record_options, ' - ')) AS order_item
+	FROM
+		customer_orders AS c
+		INNER JOIN pizza_names AS p
+		on c.pizza_id = p.pizza_id
+		INNER JOIN union_cte AS cte
+		ON c.record_id = cte.record_id
+	GROUP BY c.record_id, p.pizza_name
+)
+UPDATE dbo.customer_orders SET order_item = (SELECT order_item FROM final_cte WHERE customer_orders.record_id = final_cte.record_id) 
+SELECT * FROM customer_orders
+
+ALTER TABLE dbo.customer_orders
+ADD order_item VARCHAR(1000) NULL 
+
+
+
+-- 5. Generate an alphabetically ordered comma separated ingredient list for each pizza order from the customer_orders table and add a 2x in front of any relevant ingredients 
+--     For example: "Meat Lovers: 2xBacon, Beef, ... , Salami"
+/* 
+Need customer orders, pizza_names, pizza_toppings
+create column of ingredients in alphabetical order as" pizza_name: indgredeints, extras as 2x, exclusikons removed " 
+*/
+
+WITH ingredients_cte AS (
+	SELECT c.record_id, p.pizza_name, CASE
+		WHEN t.topping_id IN (
+			SELECT topping_id FROM extras AS e 
+			WHERE c.record_id = e.record_id)
+		THEN '2x' + t.topping_name 
+		ELSE t.topping_name 
+	END AS topping
+	
+	FROM customer_orders AS c
+	INNER JOIN pizza_names AS p
+		ON c.pizza_id = p.pizza_id
+	INNER JOIN clean_pizza_toppings AS t
+		ON c.pizza_id = t.pizza_id
+	WHERE t.topping_id NOT IN (
+		SELECT topping_id FROM exclusions AS e 
+		WHERE c.record_id = e.record_id)
+),
+list_cte AS (
+	SELECT record_id, CONCAT(pizza_name+': ', STRING_AGG(topping, ', ')) AS ingredients_list
+	FROM ingredients_cte
+	GROUP BY record_id, pizza_name
+)
+--SELECT * from list_cte
+/*
+ALTER TABLE dbo.customer_orders
+ADD ingredients_list NVARCHAR(1000) NOT NULL DEFAULT '' */
+
+UPDATE dbo.customer_orders SET ingredients_list = (SELECT ingredients_list FROM list_cte WHERE customer_orders.record_id = list_cte.record_id)
+
+
+
+-- 6. What is the total quantity of each ingredient used in all delivered pizzas sorted by most frequent first?
+
+WITH ingredients_cte AS (
+	SELECT c.record_id, t.topping_name, CASE
+		WHEN t.topping_id 
+			IN (SELECT topping_id FROM extras AS e 
+			WHERE e.record_id = c.record_id) 
+		THEN 2
+		WHEN t.topping_id
+			IN (SELECT topping_id FROM exclusions AS e
+			WHERE e.record_id = c.record_id) 
+		THEN 0
+		ELSE 1
+	END AS times_used
+	FROM 
+		customer_orders AS c
+		INNER JOIN clean_pizza_toppings AS t
+		ON c.pizza_id = t.pizza_id
+	)
+SELECT topping_name, SUM(times_used) AS times_used
+FROM ingredients_cte
+GROUP BY topping_name
+ORDER BY times_used DESC
