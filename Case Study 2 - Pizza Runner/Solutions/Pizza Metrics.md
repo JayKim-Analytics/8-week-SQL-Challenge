@@ -1,7 +1,7 @@
 # 🍕: Case Study 2 - Pizza Runner - Question Set A
 
 ## Solution Syntax
-View the complete SQL Syntax [here]().
+View the complete SQL Syntax [here](https://github.com/JayKim-Analytics/8-week-SQL-Challenge/blob/main/Case%20Study%202%20-%20Pizza%20Runner/SQL%20Syntax/Pizza%20Metrics.sql).
 
 ***
 
