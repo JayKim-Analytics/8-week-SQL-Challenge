@@ -15,7 +15,7 @@ SELECT runner_id,
 	WHEN registration_date BETWEEN '2021-01-01' AND '2021-01-07' THEN 'Week 1'
 	WHEN registration_date BETWEEN '2021-01-08' AND '2021-01-14'THEN 'Week 2'
 	ELSE 'Week 3'
-	END AS runner_signups
+	END AS registration_date
 FROM runners
 GROUP BY registration_date, runner_id
 
@@ -66,7 +66,6 @@ WHERE cancellation IS NULL
 
 
 -- 6. What was the average speed for each runner for each delivery and do you notice any trend for these values?
-SELECT * FROM runner_orders
 SELECT runner_id, ROUND(AVG(distance),2) AS average_distance, AVG(duration) AS average_speed
 FROM runner_orders
 WHERE cancellation IS NULL
