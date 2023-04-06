@@ -66,12 +66,9 @@ WHERE cancellation IS NULL
 
 
 -- 6. What was the average speed for each runner for each delivery and do you notice any trend for these values?
-SELECT runner_id, ROUND(AVG(distance),2) AS average_distance, AVG(duration) AS average_speed
+SELECT runner_id, order_id, distance, ROUND(distance/duration *60,2) AS avg_speed
 FROM runner_orders
 WHERE cancellation IS NULL
-GROUP BY runner_id
--- larger average distance = greater average speed of delivery time
-
 
 -- 7. What is the successful delivery percentage for each runner?
 SELECT runner_id, ROUND(100 * SUM(CASE
