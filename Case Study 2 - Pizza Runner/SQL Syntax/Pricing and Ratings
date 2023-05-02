@@ -51,7 +51,8 @@ final_cte AS (
 
 )
 
-SELECT order_id, extras, cost FROM final_cte
+SELECT SUM(cost) FROM final_cte
+
 
 
 
@@ -60,11 +61,7 @@ SELECT order_id, extras, cost FROM final_cte
 -- table: pizza_ratings
 
 DROP TABLE IF EXISTS order_rating
-CREATE TABLE dbo.order_rating (
-	order_id INT NOT null,
-	runner_id INT NOT null,
-	rating INT null, -- How would you rate the quality of your service overall?
-)
+
 SELECT order_id, runner_id 
 INTO order_rating
 FROM runner_orders
