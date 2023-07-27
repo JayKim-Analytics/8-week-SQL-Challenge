@@ -1,4 +1,4 @@
-# 🍎 : Case Study 3 - Foodie Fi - Question Set A
+# :tv: : Case Study 3 - Foodie Fi - Question Set A
 
 ## Solution Syntax
 View the complete SQL Syntax [here](https://github.com/JayKim-Analytics/8-week-SQL-Challenge/blob/main/Case%20Study%203%20-%20Foodie%20Fi/SQL%20Syntax/A%20-%20Customer%20Journey.sql).
