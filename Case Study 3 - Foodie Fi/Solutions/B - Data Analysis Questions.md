@@ -1,4 +1,4 @@
-# 🍎 : Case Study 3 - Foodie Fi - Question Set B
+# 📺 : Case Study 3 - Foodie Fi - Question Set B
 
 ## Solution Syntax
 View the complete SQL Syntax [here](https://github.com/JayKim-Analytics/8-week-SQL-Challenge/blob/main/Case%20Study%203%20-%20Foodie%20Fi/SQL%20Syntax/B%20-%20Data%20Analysis%20Questions.sql).
